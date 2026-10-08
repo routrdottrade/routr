@@ -1,0 +1,78 @@
+name: contracts
+on:
+  push:
+    paths: ["contracts/**", ".github/workflows/contracts.yml"]
+  workflow_dispatch:
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: contracts
+      - name: NEP-330 links equal the workspace repository (F-069)
+        run: scripts/check-repo-links.sh
+
+  reproducible:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: install cargo-near
+        run: curl --proto '=https' --tlsv1.2 -LsSf https://github.com/near/cargo-near/releases/download/cargo-near-v0.22.0/cargo-near-installer.sh | sh
+      - name: reproducible builds
+        run: |
+          for c in routr; do
+            cargo near build reproducible-wasm --manifest-path contracts/$c/Cargo.toml
+          done
+      - name: hashes
+        id: hashes
+        run: |
+          set -o pipefail  # without it the pipe into tee hid a hash mismatch (the gate passed on 2026-09-30 with one)
+          python3 - <<'PY' | tee hashes.txt
+          import hashlib, json, os, pathlib
+          A = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+          def b58(b):
+              n = int.from_bytes(b, 'big'); o = ''
+              while n: n, r = divmod(n, 58); o = A[r] + o
+              return o
+          out = {}
+
+          for c in ['routr']:
+              crate = 'routr' if c == 'routr' else 'fastr_' + c.replace('-', '_')
+              p = pathlib.Path(f'contracts/target/near/{crate}/{crate}.wasm')
+              d = p.read_bytes()
+              out[c] = {'hash': b58(hashlib.sha256(d).digest()), 'bytes': len(d)}
+              print(f'{c}: {out[c]["hash"]} ({len(d)} bytes)')
+          pathlib.Path('hashes.json').write_text(json.dumps(out, indent=1))
+
+          import re
+          known = pathlib.Path('contracts/HASHES.json')
+          if known.exists():
+              k = json.loads(known.read_text())
+              m = re.search(r'commit ([0-9a-f]{7,40})', k.get('_note', ''))
+              sha = os.environ.get('GITHUB_SHA', '')
+              if m and sha.startswith(m.group(1)):
+                  bad = [c for c in out if c in k and k[c]['hash'] != out[c]['hash']]
+                  if bad:
+                      raise SystemExit(f'hash mismatch vs contracts/HASHES.json: {bad}')
+                  print('matches contracts/HASHES.json (same commit: the build is reproducible)')
+              else:
+                  print(f'HASHES.json is for commit {m.group(1) if m else "?"}; this is {sha[:7]}: informational')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: contracts-wasm
+          path: |
+            contracts/target/near/fastr_token/fastr_token.wasm
+            contracts/target/near/fastr_locker/fastr_locker.wasm
+            contracts/target/near/fastr_factory/fastr_factory.wasm
+            contracts/target/near/routr/routr.wasm
+            contracts/target/near/fastr_nft_factory/fastr_nft_factory.wasm
+            contracts/target/near/fastr_shades/fastr_shades.wasm
+            contracts/target/near/fastr_nft_market/fastr_nft_market.wasm
+            hashes.json
