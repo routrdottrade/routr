@@ -73,6 +73,6 @@ jobs:
             contracts/target/near/fastr_factory/fastr_factory.wasm
             contracts/target/near/routr/routr.wasm
             contracts/target/near/fastr_nft_factory/fastr_nft_factory.wasm
-            contracts/target/near/fastr_shades/fastr_shades.wasm
+            contracts/target/near/fastr_collection/fastr_collection.wasm
             contracts/target/near/fastr_nft_market/fastr_nft_market.wasm
             hashes.json

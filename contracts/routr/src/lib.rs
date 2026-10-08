@@ -1890,6 +1890,14 @@ impl Routr {
     }
 
     fn delivery(msg: Option<String>, gas: Option<U64>) -> Option<Delivery> {
+        if msg.is_some() {
+            env::panic_str("E_DELIVER_MSG_OFF");
+        }
+        Self::delivery_checked(msg, gas)
+    }
+
+    #[allow(dead_code)]
+    fn delivery_checked(msg: Option<String>, gas: Option<U64>) -> Option<Delivery> {
         let msg = msg?;
         require!(msg.len() <= DELIVER_MSG_MAX, "E_DELIVER_MSG");
         let gas = gas.map_or(GAS_DELIVER_CALL_DEFAULT, |g| Gas::from_gas(g.0));

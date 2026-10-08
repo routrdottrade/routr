@@ -4,7 +4,7 @@ C="$(cd "$(dirname "$0")/../contracts" && pwd)"
 WS=$(sed -n 's/^repository = "\([^"]*\)"/\1/p' "$C/Cargo.toml")
 [ -n "$WS" ] || { echo "contracts/Cargo.toml has no workspace repository field"; exit 1; }
 bad=0
-for crate in token locker factory routr nft-factory shades nft-market; do
+for crate in token locker factory routr nft-factory collection nft-market; do
   f="$C/$crate/src/lib.rs"
   [ -f "$f" ] || continue  # a mirror carries only its own crates
   own=$(sed -n 's/^repository = "\([^"]*\)"/\1/p' "$C/$crate/Cargo.toml")
