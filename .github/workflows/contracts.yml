@@ -43,7 +43,7 @@ jobs:
           out = {}
 
           for c in ['routr']:
-              crate = 'routr' if c == 'routr' else 'fastr_' + c.replace('-', '_')
+              crate = c
               p = pathlib.Path(f'contracts/target/near/{crate}/{crate}.wasm')
               d = p.read_bytes()
               out[c] = {'hash': b58(hashlib.sha256(d).digest()), 'bytes': len(d)}
@@ -68,11 +68,5 @@ jobs:
         with:
           name: contracts-wasm
           path: |
-            contracts/target/near/fastr_token/fastr_token.wasm
-            contracts/target/near/fastr_locker/fastr_locker.wasm
-            contracts/target/near/fastr_factory/fastr_factory.wasm
             contracts/target/near/routr/routr.wasm
-            contracts/target/near/fastr_nft_factory/fastr_nft_factory.wasm
-            contracts/target/near/fastr_collection/fastr_collection.wasm
-            contracts/target/near/fastr_nft_market/fastr_nft_market.wasm
             hashes.json

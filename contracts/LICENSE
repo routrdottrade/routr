@@ -7,13 +7,12 @@ License text copyright (c) 2017 MariaDB Corporation Ab, All Rights Reserved.
 
 Parameters
 
-Licensor:             fastr
+Licensor:             routr
 
-Licensed Work:        The fastr and routr smart contracts: the `token`,
-                      `locker`, `factory` and `routr` crates, their shared
-                      test crates and the build configuration in the
-                      `contracts/` directory of this repository.
-                      The Licensed Work is (c) 2026 fastr.
+Licensed Work:        The routr smart contract: the `routr` crate and the
+                      build configuration in the `contracts/` directory of
+                      this repository.
+                      The Licensed Work is (c) 2026 routr.
 
 Additional Use Grant: None.
 
